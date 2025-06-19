@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head> 
+    <title>IS KAI PLAYING?</title>
+</head>
+<body>
+    <h1>Hello World</h1>
+    <p>Is Kai playing?</p>
+    <button onclick="checkIfKaiIsPlaying()">Check</button>
+    <p id="result"></p>
+    <script>
+        function checkIfKaiIsPlaying() {
+            fetch('/check')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').innerHTML = data;
+            });
+        }
+    </script>
+</body>
+
+</html>
