@@ -12,7 +12,7 @@ def is_kai_playing():
     response = requests.get(url)
     data = response.json()
     startTime = data[0]['start_time']
-    dt = datetime.datetime.fromtimestamp(time.localtime(startTime))
+    dt = datetime.datetime.fromtimestamp(startTime)
 
     formatted_dt = dt.strftime("Played on %B %d at %I:%M %p")
     return formatted_dt
