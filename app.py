@@ -7,6 +7,27 @@ from datetime import datetime, timezone
 # 160572764
 app = Flask(__name__)
 
+# for n in data3:
+#     players = n['players']
+#     for player in players:
+#         if player['account_id'] == 418103605:
+#             print(player)
+
+def is_kai_live():
+    kai_steam_id = 125554795
+    url = f"https://api.opendota.com/api/live"
+    response = requests.get(url)
+    data = response.json()
+
+    for match in data:
+        players = match['players']
+        for player in players:
+            if player['account_id'] == kai_steam_id:
+                return True
+    return False
+
+
+
 def is_loss(match):
     is_radiant = match['player_slot'] < 128
     return match['radiant_win'] != is_radiant
@@ -154,6 +175,10 @@ def check():
     lastrows = "<br>".join(last5)
     return f"{status}<br><br><b>Why?</b><br>{details}<br><br><b>Last 5 matches (newest→oldest)</b><br>{lastrows}"
 
+@app.route('/checkTwo')
+def checkTwo():
+    var = is_kai_live()
+    return f"Is Kai playing? {var}"
 
 if __name__ == "__main__":
     app.run(debug=True)
