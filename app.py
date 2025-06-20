@@ -4,17 +4,13 @@ import requests
 import time
 from datetime import datetime, timezone
 
-# 160572764
+
 app = Flask(__name__)
 
-# for n in data3:
-#     players = n['players']
-#     for player in players:
-#         if player['account_id'] == 418103605:
-#             print(player)
+
 
 def is_kai_live():
-    kai_steam_id = 125554795
+    kai_steam_id = 180760103
     url = f"https://api.opendota.com/api/live"
     response = requests.get(url)
     data = response.json()
