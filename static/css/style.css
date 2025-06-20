@@ -1,0 +1,10 @@
+body {
+    background-color: #000;
+    color: #fff;
+    cursor: url("/static/img/cursor_image.png"), auto;
+}
+
+button:hover {
+    cursor: url("/static/img/cursor_image.png"), auto;
+}
+
