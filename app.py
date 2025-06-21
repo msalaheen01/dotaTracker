@@ -167,9 +167,39 @@ def check():
     )
 
     # Build an HTML response with the log and the last-five table
-    details  = "<br>".join(log)
-    lastrows = "<br>".join(last5)
-    return f"{status}<br><br><b>Why?</b><br>{details}<br><br><b>Last 5 matches (newest→oldest)</b><br>{lastrows}"
+    details = "<br>".join(log)
+
+    # lastrows = "<br>".join(last5)
+    hero_data = requests.get("https://api.opendota.com/api/heroes").json()
+    hero_map = {hero["id"]: hero["name"].replace("npc_dota_hero_", "") for hero in hero_data}
+
+    match_info = ""
+
+    for m in matches:
+        match_id = m['match_id']
+        hero_id = m['hero_id']
+        hero_name = hero_map.get(hero_id, "unknown")
+        kills = m['kills']
+        deaths = m['deaths']
+        assists = m['assists']
+        duration = round(m['duration'] / 60,1)
+        ago = int((time.time() - m['start_time']) / 60)
+        win_class = "win" if not is_loss(m) else "loss"
+        result_text = "Win" if win_class == "win" else "Loss"
+        img_url = f"https://cdn.dota2.com/apps/dota2/images/heroes/{hero_name}_lg.png"
+        match_info += f"""
+        <div class='match-box'>
+            <div class='match-details'>
+                Match <b>{match_id}</b> | Hero: {hero_name.replace("_", " ").title()}<br>
+                K/D/A: {kills}/{deaths}/{assists} | Duration: {duration} min<br>
+                Played {ago} min ago → <span class='{win_class}'>{result_text}</span>
+            </div>
+            <img class='hero-img' src='{img_url}' alt='{hero_name}'>
+        </div>
+        """
+
+
+    return f"{status}<br><b>Why?</b>{details}<br><br><b>Last 5 Matches:</b><br>{match_info}"
 
 @app.route('/checkTwo')
 def checkTwo():

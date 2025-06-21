@@ -2,33 +2,102 @@
 <html lang="en">
 
 <head> 
-    <title>IS KAI PLAYING?</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaiFinder - Dota 2 Player Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Hello World</h1>
-    <p>Is Kai playing?</p>
-    <button onclick="checkIfKaiIsPlaying()">Check</button>
-    <p id="result"></p>
+    <div class="container">
+        <header class="header">
+            <div class="header-title">
+                <h1 class="title">🎮 KaiFinder</h1>
+                <p class="subtitle">Track Kai's Dota 2 activity in real-time</p>
+            </div>
+
+            <!-- Live Status Section (Top Right) -->
+            <section id="live-status-section" class="status-section">
+                <div class="section-header">
+                    <h2>Live Match Status</h2>
+                    <p>Top 100 players only</p>
+                </div>
+                <div class="action-card">
+                    <button class="btn btn-secondary" onclick="checkIfKaiIsLive()">
+                        <span class="btn-icon">📺</span>
+                        Check Live Status
+                    </button>
+                    <div id="result2" class="result-container"></div>
+                </div>
+            </section>
+        </header>
+
+        <main class="main-content">
+            <!-- Queue Status Section -->
+            <section class="status-section full-width">
+                <div class="section-header">
+                    <h2>Queue Status</h2>
+                    <p>Check if Kai is likely queueing for a match</p>
+                </div>
+                <div class="action-card">
+                    <button class="btn btn-primary" onclick="checkIfKaiIsPlaying()">
+                        <span class="btn-icon">🔍</span>
+                        Check Queue Status
+                    </button>
+                    <div id="result" class="result-container"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>Powered by OpenDota API • Updated in real-time</p>
+        </footer>
+    </div>
+
     <script>
         function checkIfKaiIsPlaying() {
+            const btn = event.target;
+            const resultDiv = document.getElementById('result');
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">⏳</span> Checking...';
+            resultDiv.innerHTML = '<div class="loading">Loading queue status...</div>';
+            
             fetch('/check')
             .then(response => response.text())
             .then(data => {
-                document.getElementById('result').innerHTML = data;
+                resultDiv.innerHTML = data;
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-icon">🔍</span> Check Queue Status';
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<div class="error">Error checking status. Please try again.</div>';
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-icon">🔍</span> Check Queue Status';
             });
         }
-    </script>
-    <br>
-    <p>Is Kai Live?</p>
-    <button onclick="checkIfKaiIsLive()">Check</button>
-    <p id="result2"></p>
-    <script>
+
         function checkIfKaiIsLive() {
+            const btn = event.target;
+            const resultDiv = document.getElementById('result2');
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">⏳</span> Checking...';
+            resultDiv.innerHTML = '<div class="loading">Checking live status...</div>';
+            
             fetch('/checkTwo')
             .then(response => response.text())
             .then(data => {
-                document.getElementById('result2').innerHTML = data;
+                resultDiv.innerHTML = data;
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-icon">📺</span> Check Live Status';
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<div class="error">Error checking live status. Please try again.</div>';
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-icon">📺</span> Check Live Status';
             });
         }
     </script>
