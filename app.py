@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import datetime
 import requests
 import time
@@ -131,6 +131,20 @@ def estimate_queue_likelihood(matches):
     return min(score, 100), log, last_five_summary(matches)
 
 
+def format_time_ago(minutes):
+    """Format time ago in days if > 24 hours, hours and minutes if > 60 minutes, otherwise just minutes"""
+    if minutes >= 1440:  # 24 hours = 1440 minutes
+        days = minutes // 1440
+        return f"{days}d ago"
+    elif minutes >= 60:
+        hours = minutes // 60
+        remaining_minutes = minutes % 60
+        if remaining_minutes == 0:
+            return f"{hours}h ago"
+        else:
+            return f"{hours}h {remaining_minutes}m ago"
+    else:
+        return f"{minutes}m ago"
 
 
 def get_matches():
@@ -157,8 +171,8 @@ def index():
 
 @app.route('/check')
 def check():
-    matches = get_matches()
-    score, log, last5 = estimate_queue_likelihood(matches)
+    matches_data = get_matches()
+    score, log, last5 = estimate_queue_likelihood(matches_data)
 
     status = (
         f"🔥 Likely queueing! ({score}%)" if score > 70 else
@@ -166,40 +180,37 @@ def check():
         f"❄️ Likely not playing. ({score}%)"
     )
 
-    # Build an HTML response with the log and the last-five table
-    details = "<br>".join(log)
+    details_log = "<br>".join(log)
 
-    # lastrows = "<br>".join(last5)
     hero_data = requests.get("https://api.opendota.com/api/heroes").json()
     hero_map = {hero["id"]: hero["name"].replace("npc_dota_hero_", "") for hero in hero_data}
 
-    match_info = ""
-
-    for m in matches:
-        match_id = m['match_id']
-        hero_id = m['hero_id']
+    matches_list = []
+    for m in matches_data:
+        hero_id = m.get('hero_id')
         hero_name = hero_map.get(hero_id, "unknown")
-        kills = m['kills']
-        deaths = m['deaths']
-        assists = m['assists']
-        duration = round(m['duration'] / 60,1)
-        ago = int((time.time() - m['start_time']) / 60)
         win_class = "win" if not is_loss(m) else "loss"
-        result_text = "Win" if win_class == "win" else "Loss"
-        img_url = f"https://cdn.dota2.com/apps/dota2/images/heroes/{hero_name}_lg.png"
-        match_info += f"""
-        <div class='match-box'>
-            <div class='match-details'>
-                Match <b>{match_id}</b> | Hero: {hero_name.replace("_", " ").title()}<br>
-                K/D/A: {kills}/{deaths}/{assists} | Duration: {duration} min<br>
-                Played {ago} min ago → <span class='{win_class}'>{result_text}</span>
-            </div>
-            <img class='hero-img' src='{img_url}' alt='{hero_name}'>
-        </div>
-        """
 
+        matches_list.append({
+            'match_id': m.get('match_id'),
+            'hero_name': hero_name.replace("_", " ").title(),
+            'kills': m.get('kills'),
+            'deaths': m.get('deaths'),
+            'assists': m.get('assists'),
+            'duration': round(m.get('duration', 0) / 60, 1),
+            'ago': int((time.time() - m.get('start_time', time.time())) / 60),
+            'ago_display': format_time_ago(int((time.time() - m.get('start_time', time.time())) / 60)),
+            'win_class': win_class,
+            'result_text': "Win" if win_class == "win" else "Loss",
+            'img_url': f"https://cdn.dota2.com/apps/dota2/images/heroes/{hero_name}_lg.png"
+        })
 
-    return f"{status}<br><b>Why?</b>{details}<br><br><b>Last 5 Matches:</b><br>{match_info}"
+    return jsonify({
+        'status': status,
+        'log': details_log,
+        'matches': matches_list,
+        'last5_title': "Last 5 Matches:"
+    })
 
 @app.route('/checkTwo')
 def checkTwo():

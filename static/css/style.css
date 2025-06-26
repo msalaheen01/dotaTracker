@@ -42,9 +42,9 @@ body {
 
 /* Main content */
 .main-content {
-    /* display: flex; No longer needed */
-    /* gap: 20px; No longer needed */
-    /* flex-wrap: wrap; No longer needed */
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
 }
 
 /* Status sections */
@@ -136,6 +136,14 @@ body {
     border-radius: 8px;
     font-family: 'Comic Neue', sans-serif;
     color: white;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.match-box.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .match-details {
@@ -221,8 +229,12 @@ body {
     flex-shrink: 0;
 }
 
-.status-section.full-width {
-    width: 100%;
+.status-section.queue-status-section {
+    flex: 3; /* Takes up more space */
+}
+
+.status-section.test-box-section {
+    flex: 1; /* Takes up less space */
 }
 
 .btn-secondary {

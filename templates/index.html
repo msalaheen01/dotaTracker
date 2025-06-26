@@ -34,7 +34,7 @@
 
         <main class="main-content">
             <!-- Queue Status Section -->
-            <section class="status-section full-width">
+            <section class="status-section queue-status-section">
                 <div class="section-header">
                     <h2>Queue Status</h2>
                     <p>Check if Kai is likely queueing for a match</p>
@@ -47,6 +47,17 @@
                     <div id="result" class="result-container"></div>
                 </div>
             </section>
+
+            <!-- Test Box Section -->
+            <section class="status-section test-box-section">
+                <div class="section-header">
+                    <h2>Test Box</h2>
+                    <p>This is a new section.</p>
+                </div>
+                <div>
+                    <p>Content for the new box goes here.</p>
+                </div>
+            </section>
         </main>
 
         <footer class="footer">
@@ -56,22 +67,67 @@
 
     <script>
         function checkIfKaiIsPlaying() {
-            const btn = event.target;
+            const btn = document.querySelector('.btn-primary');
             const resultDiv = document.getElementById('result');
             
-            // Show loading state
             btn.disabled = true;
             btn.innerHTML = '<span class="btn-icon">⏳</span> Checking...';
             resultDiv.innerHTML = '<div class="loading">Loading queue status...</div>';
             
             fetch('/check')
-            .then(response => response.text())
+            .then(response => response.json())
             .then(data => {
-                resultDiv.innerHTML = data;
-                btn.disabled = false;
-                btn.innerHTML = '<span class="btn-icon">🔍</span> Check Queue Status';
+                // Clear loading state
+                resultDiv.innerHTML = '';
+
+                // Display status and log
+                const statusHTML = `
+                    <p>${data.status}</p>
+                    <b>Why?</b>
+                    <div>${data.log}</div>
+                    <br>
+                    <b>${data.last5_title}</b>
+                `;
+                resultDiv.innerHTML = statusHTML;
+
+                // Create a container for matches to be appended to
+                const matchesContainer = document.createElement('div');
+                matchesContainer.id = 'matches-container';
+                resultDiv.appendChild(matchesContainer);
+
+                // Animate matches one by one
+                data.matches.forEach((match, index) => {
+                    setTimeout(() => {
+                        const matchBox = document.createElement('div');
+                        matchBox.classList.add('match-box');
+                        
+                        matchBox.innerHTML = `
+                            <div class='match-details'>
+                                Match <b>${match.match_id}</b> | Hero: ${match.hero_name}<br>
+                                K/D/A: ${match.kills}/${match.deaths}/${match.assists} | Duration: ${match.duration} min<br>
+                                Played ${match.ago_display} → <span class='${match.win_class}'>${match.result_text}</span>
+                            </div>
+                            <img class='hero-img' src='${match.img_url}' alt='${match.hero_name}'>
+                        `;
+                        
+                        matchesContainer.appendChild(matchBox);
+
+                        setTimeout(() => {
+                            matchBox.classList.add('visible');
+                        }, 50);
+
+                    }, index * 150);
+                });
+
+                const totalAnimationTime = data.matches.length * 150;
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="btn-icon">🔍</span> Check Queue Status';
+                }, totalAnimationTime);
+
             })
             .catch(error => {
+                console.error('Error:', error);
                 resultDiv.innerHTML = '<div class="error">Error checking status. Please try again.</div>';
                 btn.disabled = false;
                 btn.innerHTML = '<span class="btn-icon">🔍</span> Check Queue Status';
